@@ -1,0 +1,1532 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Seminario 4 · Definición Conceptual y Operacional</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080c14;
+    --surface: #0f1520;
+    --surface2: #151d2e;
+    --border: rgba(99,179,237,0.15);
+    --accent: #4fc3f7;
+    --accent2: #7c4dff;
+    --accent3: #00e5a0;
+    --text: #e8edf5;
+    --muted: #7a8ba3;
+    --danger: #ff6b6b;
+    --warm: #ffb74d;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+  }
+
+  /* ── SLIDES CONTAINER ── */
+  .deck {
+    width: 100%;
+    height: 100%;
+    position: relative;
+  }
+
+  .slide {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 60px 80px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s ease, transform 0.5s ease;
+    transform: translateY(20px);
+  }
+
+  .slide.active {
+    opacity: 1;
+    pointer-events: all;
+    transform: translateY(0);
+  }
+
+  /* ── NAV ── */
+  .nav {
+    position: fixed;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    z-index: 100;
+    background: rgba(15,21,32,0.9);
+    border: 1px solid var(--border);
+    border-radius: 40px;
+    padding: 12px 24px;
+    backdrop-filter: blur(20px);
+  }
+
+  .nav button {
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 18px;
+    cursor: pointer;
+    transition: color 0.2s;
+    padding: 4px 8px;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .nav button:hover { color: var(--accent); }
+
+  .slide-counter {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    min-width: 60px;
+    text-align: center;
+    letter-spacing: 0.05em;
+  }
+
+  .dots {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--muted);
+    cursor: pointer;
+    transition: all 0.3s;
+    opacity: 0.4;
+  }
+  .dot.active {
+    width: 20px;
+    border-radius: 3px;
+    background: var(--accent);
+    opacity: 1;
+  }
+
+  /* ── TIMER ── */
+  .timer {
+    position: fixed;
+    top: 24px;
+    right: 32px;
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: var(--muted);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .timer-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--accent3);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%,100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  /* ── PROGRESS BAR ── */
+  .progress {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: rgba(99,179,237,0.1);
+    z-index: 200;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent2), var(--accent));
+    transition: width 0.4s ease;
+  }
+
+  /* ── BRANDING ── */
+  .logo {
+    position: fixed;
+    top: 24px;
+    left: 32px;
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    text-transform: uppercase;
+    z-index: 100;
+  }
+
+  /* ──────────────────────────────────────
+     SLIDE TYPES
+  ─────────────────────────────────────── */
+
+  /* COVER */
+  .slide-cover {
+    background: radial-gradient(ellipse at 20% 50%, rgba(76,76,255,0.15) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 20%, rgba(79,195,247,0.12) 0%, transparent 50%),
+                radial-gradient(ellipse at 60% 80%, rgba(0,229,160,0.08) 0%, transparent 50%),
+                var(--bg);
+    text-align: center;
+    gap: 24px;
+  }
+
+  .cover-eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: var(--accent);
+    text-transform: uppercase;
+    padding: 6px 16px;
+    border: 1px solid rgba(79,195,247,0.3);
+    border-radius: 20px;
+    display: inline-block;
+  }
+
+  .cover-title {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(36px, 5vw, 64px);
+    font-weight: 800;
+    line-height: 1.05;
+    background: linear-gradient(135deg, #ffffff 0%, var(--accent) 60%, var(--accent2) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    max-width: 900px;
+  }
+
+  .cover-subtitle {
+    font-size: 18px;
+    color: var(--muted);
+    font-weight: 300;
+    max-width: 600px;
+  }
+
+  .cover-meta {
+    display: flex;
+    gap: 40px;
+    justify-content: center;
+    margin-top: 16px;
+  }
+
+  .cover-meta-item {
+    text-align: center;
+  }
+
+  .cover-meta-item .label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  .cover-meta-item .val {
+    font-size: 14px;
+    color: var(--accent);
+    font-weight: 500;
+  }
+
+  /* BRAIN VISUAL for cover */
+  .brain-bg {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    opacity: 0.06;
+  }
+
+  .brain-bg svg { width: 100%; height: 100%; }
+
+  /* SECTION HEADER */
+  .slide-section {
+    background: linear-gradient(135deg, var(--surface) 0%, var(--bg) 100%);
+    align-items: flex-start;
+    gap: 20px;
+  }
+
+  .section-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 80px;
+    font-weight: 400;
+    color: rgba(79,195,247,0.08);
+    line-height: 1;
+    position: absolute;
+    top: 50px;
+    right: 80px;
+  }
+
+  .section-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    color: var(--accent2);
+    text-transform: uppercase;
+  }
+
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(32px, 4vw, 52px);
+    font-weight: 800;
+    line-height: 1.1;
+    max-width: 700px;
+  }
+
+  .section-body {
+    font-size: 18px;
+    color: var(--muted);
+    font-weight: 300;
+    max-width: 600px;
+    line-height: 1.7;
+  }
+
+  /* CONTENT SLIDE */
+  .slide-content {
+    background: var(--bg);
+    align-items: flex-start;
+    gap: 32px;
+  }
+
+  .slide-header {
+    width: 100%;
+  }
+
+  .slide-eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .slide-title {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(22px, 3vw, 36px);
+    font-weight: 700;
+    line-height: 1.15;
+  }
+
+  /* CARD GRIDS */
+  .cards-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+    width: 100%;
+  }
+
+  .cards-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    width: 100%;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.3s;
+  }
+
+  .card:hover {
+    border-color: rgba(79,195,247,0.4);
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--card-accent, var(--accent));
+    opacity: 0.8;
+  }
+
+  .card-icon {
+    display: none;
+  }
+
+  .card-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    color: var(--text);
+  }
+
+  .card-body {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.65;
+  }
+
+  .card-body strong {
+    color: var(--accent);
+    font-weight: 500;
+  }
+
+  .card-tag {
+    display: inline-block;
+    margin-top: 12px;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    padding: 4px 10px;
+    border-radius: 20px;
+    background: rgba(79,195,247,0.1);
+    color: var(--accent);
+    text-transform: uppercase;
+  }
+
+  /* BIG QUOTE SLIDE */
+  .slide-quote {
+    background: radial-gradient(ellipse at center, rgba(124,77,255,0.1) 0%, transparent 70%), var(--bg);
+    text-align: center;
+    gap: 24px;
+  }
+
+  .quote-mark {
+    font-family: 'Syne', sans-serif;
+    font-size: 120px;
+    color: rgba(124,77,255,0.2);
+    line-height: 0.7;
+    font-weight: 800;
+  }
+
+  .quote-text {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(22px, 3vw, 36px);
+    font-weight: 700;
+    line-height: 1.3;
+    max-width: 800px;
+    background: linear-gradient(135deg, #ffffff 0%, var(--accent) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .quote-source {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  /* COMPARISON */
+  .compare-grid {
+    display: grid;
+    grid-template-columns: 1fr 60px 1fr;
+    gap: 0;
+    width: 100%;
+    align-items: stretch;
+  }
+
+  .compare-side {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+  }
+
+  .compare-side.right {
+    --card-accent: var(--accent3);
+    border-color: rgba(0,229,160,0.2);
+  }
+
+  .compare-vs {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 18px;
+    color: var(--muted);
+  }
+
+  .compare-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  .compare-side:first-child .compare-label { color: var(--accent); }
+  .compare-side.right .compare-label { color: var(--accent3); }
+
+  .compare-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 16px;
+  }
+
+  .compare-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .compare-list li {
+    font-size: 13px;
+    color: var(--muted);
+    padding-left: 20px;
+    position: relative;
+    line-height: 1.5;
+  }
+
+  .compare-list li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: var(--accent);
+    font-size: 12px;
+  }
+
+  .compare-side.right .compare-list li::before {
+    color: var(--accent3);
+  }
+
+  /* PROCESS / FLOW */
+  .flow {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    width: 100%;
+  }
+
+  .flow-step {
+    flex: 1;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px 20px;
+    text-align: center;
+    position: relative;
+  }
+
+  .flow-arrow {
+    width: 40px;
+    text-align: center;
+    color: var(--accent);
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
+  .flow-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+    margin-bottom: 8px;
+  }
+
+  .flow-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+
+  .flow-body {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  /* TABLE SLIDE */
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+
+  .data-table thead tr {
+    background: var(--surface2);
+  }
+
+  .data-table th {
+    padding: 14px 16px;
+    text-align: left;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .data-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid rgba(99,179,237,0.06);
+    color: var(--muted);
+    line-height: 1.5;
+    vertical-align: top;
+  }
+
+  .data-table td:first-child {
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  .data-table tr:last-child td {
+    border-bottom: none;
+  }
+
+  .data-table tr:hover td {
+    background: rgba(79,195,247,0.03);
+  }
+
+  /* HIGHLIGHT BOX */
+  .highlight {
+    background: linear-gradient(135deg, rgba(79,195,247,0.08) 0%, rgba(124,77,255,0.06) 100%);
+    border: 1px solid rgba(79,195,247,0.25);
+    border-radius: 12px;
+    padding: 20px 24px;
+    width: 100%;
+  }
+
+  .highlight-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .highlight-text {
+    font-size: 15px;
+    line-height: 1.65;
+    color: var(--text);
+  }
+
+  .highlight-text strong {
+    color: var(--accent);
+  }
+
+  /* PILL TAGS */
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .tag {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    border: 1px solid;
+  }
+
+  .tag-blue { background: rgba(79,195,247,0.1); border-color: rgba(79,195,247,0.3); color: var(--accent); }
+  .tag-purple { background: rgba(124,77,255,0.1); border-color: rgba(124,77,255,0.3); color: #a78bfa; }
+  .tag-green { background: rgba(0,229,160,0.1); border-color: rgba(0,229,160,0.3); color: var(--accent3); }
+  .tag-warm { background: rgba(255,183,77,0.1); border-color: rgba(255,183,77,0.3); color: var(--warm); }
+  .tag-red { background: rgba(255,107,107,0.1); border-color: rgba(255,107,107,0.3); color: var(--danger); }
+
+  /* LIST MODERN */
+  .modern-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: 100%;
+  }
+
+  .modern-list-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 16px 20px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+  }
+
+  .mli-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: var(--accent);
+  }
+
+  .mli-content {}
+
+  .mli-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .mli-body {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  /* SPLIT LAYOUT */
+  .split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+    width: 100%;
+    align-items: start;
+  }
+
+  .split-left {}
+  .split-right {}
+
+  /* CLOSE / END SLIDE */
+  .slide-close {
+    background: radial-gradient(ellipse at 30% 70%, rgba(0,229,160,0.1) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 30%, rgba(79,195,247,0.08) 0%, transparent 50%),
+                var(--bg);
+    text-align: center;
+    gap: 20px;
+  }
+
+  /* ANIMATED BG LINES */
+  .grid-lines {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(79,195,247,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(79,195,247,0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+  }
+
+  /* BADGE */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+  }
+
+  .badge-accent { background: rgba(79,195,247,0.15); color: var(--accent); border: 1px solid rgba(79,195,247,0.3); }
+  .badge-green { background: rgba(0,229,160,0.15); color: var(--accent3); border: 1px solid rgba(0,229,160,0.3); }
+  .badge-warm { background: rgba(255,183,77,0.15); color: var(--warm); border: 1px solid rgba(255,183,77,0.3); }
+
+  /* WAVE SVG decorative */
+  .wave-deco {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    opacity: 0.04;
+    pointer-events: none;
+  }
+
+  /* KEYBOARD HINT */
+  .kbd-hint {
+    position: fixed;
+    bottom: 80px;
+    right: 32px;
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: rgba(122,139,163,0.4);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  /* NEURONS decorative */
+  .neuro-deco {
+    position: absolute;
+    opacity: 0.04;
+    pointer-events: none;
+  }
+
+  /* TIME BADGE for cover */
+  .time-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 20px;
+    background: rgba(255,183,77,0.1);
+    border: 1px solid rgba(255,183,77,0.3);
+    border-radius: 20px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--warm);
+    letter-spacing: 0.08em;
+  }
+
+  /* LEVEL INDICATOR */
+  .level-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    margin-bottom: 8px;
+  }
+  .level-label {
+    font-size: 13px;
+    color: var(--text);
+    width: 160px;
+    flex-shrink: 0;
+  }
+  .level-bar-bg {
+    flex: 1;
+    height: 6px;
+    background: var(--surface2);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+  .level-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: linear-gradient(90deg, var(--fill-start), var(--fill-end));
+  }
+  .level-badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    padding: 3px 10px;
+    border-radius: 10px;
+    width: 100px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  /* SLIDE SPECIFIC BACKGROUNDS */
+  .slide-1 { }
+
+  /* SCROLL for very content-heavy slides */
+  .slide-content.scrollable { overflow-y: auto; padding-right: 70px; }
+
+  /* ACCENT LINE */
+  .accent-line {
+    width: 60px;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 2px;
+    margin-bottom: 8px;
+  }
+</style>
+</head>
+<body>
+
+<!-- PROGRESS BAR -->
+<div class="progress"><div class="progress-fill" id="progressFill"></div></div>
+
+<!-- LOGO -->
+<div class="logo">M&amp;B Holistic Health · Seminario Pensamiento Científico</div>
+
+<!-- TIMER -->
+<div class="timer">
+  <div class="timer-dot"></div>
+  <span id="timerDisplay">00:00</span>
+</div>
+
+<!-- KEYBOARD HINT -->
+<div class="kbd-hint">← → para navegar · F para pantalla completa</div>
+
+<!-- DECK -->
+<div class="deck" id="deck">
+
+  <!-- ─────────────────────────────────────────────────────────
+       SLIDE 1 · COVER
+  ───────────────────────────────────────────────────────────── -->
+  <div class="slide slide-cover active">
+    <div class="grid-lines"></div>
+    <!-- decorative EEG wave SVG -->
+    <svg class="wave-deco" viewBox="0 0 1440 200" xmlns="http://www.w3.org/2000/svg">
+      <polyline points="0,100 80,100 120,20 160,180 200,100 280,100 320,60 360,140 400,100 480,100 520,30 560,170 600,100 680,100 720,50 760,150 800,100 880,100 920,10 960,190 1000,100 1080,100 1120,70 1160,130 1200,100 1280,100 1360,55 1400,145 1440,100"
+        fill="none" stroke="#4fc3f7" stroke-width="3"/>
+    </svg>
+
+    <div class="cover-eyebrow">Módulo 2 · Seminario 4</div>
+    <h1 class="cover-title">Definición Conceptual<br>y Operacional</h1>
+    <p class="cover-subtitle">Cómo traducir ideas abstractas en datos medibles<br>dentro de tu servicio de neurofeedback</p>
+
+    <div class="cover-meta">
+      <div class="cover-meta-item">
+        <div class="label">Duración</div>
+        <div class="val">50 – 60 min</div>
+      </div>
+      <div class="cover-meta-item">
+        <div class="label">Módulo</div>
+        <div class="val">Variables y Operacionalización</div>
+      </div>
+      <div class="cover-meta-item">
+        <div class="label">Nivel</div>
+        <div class="val">Aplicado · Contextual</div>
+      </div>
+    </div>
+
+    <div class="time-badge" style="margin-top: 8px;">
+      Agenda: Conceptual → Operacional → Niveles de análisis → Actividad
+    </div>
+  </div>
+
+
+  <!-- ─────────────────────────────────────────────────────────
+       SLIDE 2 · AGENDA
+  ───────────────────────────────────────────────────────────── -->
+  <div class="slide slide-content">
+    <div class="slide-header">
+      <div class="slide-eyebrow">Sesión de hoy</div>
+      <h2 class="slide-title">¿Qué vamos a trabajar?</h2>
+    </div>
+
+    <div class="cards-2" style="grid-template-columns: repeat(4,1fr); gap: 16px; width: 100%;">
+      <div class="card" style="--card-accent: var(--accent);">
+        <div style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.15em;color:var(--accent);margin-bottom:10px;">01</div>
+        <div class="card-title">Constructos</div>
+        <div class="card-body">Qué son y por qué importan en neurofeedback</div>
+        <div class="card-tag">~12 min</div>
+      </div>
+      <div class="card" style="--card-accent: var(--accent2);">
+        <div style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.15em;color:var(--accent2);margin-bottom:10px;">02</div>
+        <div class="card-title">Operacionalización</div>
+        <div class="card-body">Cómo convertir un concepto en algo medible</div>
+        <div class="card-tag">~12 min</div>
+      </div>
+      <div class="card" style="--card-accent: var(--accent3);">
+        <div style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.15em;color:var(--accent3);margin-bottom:10px;">03</div>
+        <div class="card-title">Niveles de análisis</div>
+        <div class="card-body">Individual, grupal, organizacional</div>
+        <div class="card-tag">~12 min</div>
+      </div>
+      <div class="card" style="--card-accent: var(--warm);">
+        <div style="font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.15em;color:var(--warm);margin-bottom:10px;">04</div>
+        <div class="card-title">Actividad práctica</div>
+        <div class="card-body">Operacionalizamos juntos un protocolo real</div>
+        <div class="card-tag">~15 min</div>
+      </div>
+    </div>
+
+    <div class="highlight">
+      <div class="highlight-label">Objetivo de sesión</div>
+      <div class="highlight-text">Al finalizar podrás identificar cuándo estás midiendo un <strong>constructo</strong> vs. una <strong>variable operacionalizada</strong>, y sabrás qué pasos faltan en tu protocolo actual para que tus datos sean analizables y publicables.</div>
+    </div>
+  </div>
+
+
+  <!-- ─────────────────────────────────────────────────────────
+       SLIDE 3 · PREGUNTA GANCHO
+  ───────────────────────────────────────────────────────────── -->
+  <div class="slide slide-quote">
+    <div class="quote-mark">"</div>
+    <p class="quote-text">¿Qué exactamente estás midiendo cuando dices que tu paciente "mejoró su atención" después de 20 sesiones de neurofeedback?</p>
+    <div class="quote-source">Pregunta de arranque · Seminario 4</div>
+    <div class="tags" style="justify-content: center; margin-top: 16px;">
+      <span class="tag tag-blue">¿Cómo lo defines?</span>
+      <span class="tag tag-purple">¿Cómo lo mides?</span>
+      <span class="tag tag-green">¿Cómo lo registras?</span>
+      <span class="tag tag-warm">¿Es comparable?</span>
+    </div>
+  </div>
+
+
+  <!-- ─────────────────────────────────────────────────────────
+       SLIDE 4 · QUÉ ES UN CONSTRUCTO
+  ───────────────────────────────────────────────────────────── -->
+  <div class="slide slide-content">
+    <div class="slide-header">
+      <div class="slide-eyebrow">Bloque 1 · Constructos</div>
+      <h2 class="slide-title">¿Qué es un constructo?</h2>
+    </div>
+
+    <div class="compare-grid">
+      <div class="compare-side">
+        <div class="compare-label">Constructo</div>
+        <div class="compare-title">Concepto teórico abstracto</div>
+        <ul class="compare-list">
+          <li>No es directamente observable</li>
+          <li>Existe como <em>modelo explicativo</em></li>
+          <li>Requiere definición consensuada</li>
+          <li>Ejemplos: atención, regulación emocional, coherencia cardíaca, estrés, resiliencia</li>
+        </ul>
+      </div>
+      <div class="compare-vs">≠</div>
+      <div class="compare-side right">
+        <div class="compare-label">Variable operacionalizada</div>
+        <div class="compare-title">Lo que puedes medir y registrar</div>
+        <ul class="compare-list">
+          <li>Observable, cuantificable o categorizable</li>
+          <li>Vinculada a un instrumento específico</li>
+          <li>Tiene unidad de medida</li>
+          <li>Ejemplos: amplitud de onda theta (µV), puntaje en Conners-3, HRV SDNN (ms), cortisol salival (pg/mL)</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="highlight">
+      <div class="highlight-label">Punto clave</div>
+      <div class="highlight-text">El <strong>error más frecuente en clínica aplicada</strong> es registrar datos sin haber definido antes el constructo que supuestamente miden. Resultado: datos que no comunican nada preciso.</div>
+    </div>
+  </div>
+
+
+  <!-- ─────────────────────────────────────────────────────────
+       SLIDE 5 · EJEMPLOS CONSTRUCTOS NF
+  ───────────────────────────────────────────────────────────── -->
+  <div class="slide slide-content">
+    <div class="slide-header">
+      <div class="slide-eyebrow">Bloque 1 · Constructos en contexto</div>
+      <h2 class="slide-title">Constructos frecuentes en neurofeedback</h2>
+    </div>
+
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Constructo</th>
+          <th>¿Qué es teóricamente?</th>
+          <th>¿Cómo se suele operar?</th>
+          <th>Riesgo común</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Atención sostenida</td>
+          <td>Capacidad de mantener el foco en una tarea por tiempo prolongado</td>
+          <td>Ratio theta/beta · escalas como Conners · d2-R</td>
+          <td>Usar "te ves más atento" como indicador</td>
+        </tr>
+        <tr>
+          <td>Regulación emocional</td>
+          <td>Habilidad para modular respuestas afectivas ante estímulos</td>
+          <td>HRV · MAAS · DERS · galvánica</td>
+          <td>Confundir relajación con regulación</td>
+        </tr>
+        <tr>
+          <td>Estado de alerta / arousal</td>
+          <td>Nivel de activación del SNC en un momento dado</td>
+          <td>Amplitud SMR · EDA · ratio alfa/beta</td>
+          <td>Medir solo en reposo, no en tarea</td>
+        </tr>
+        <tr>
+          <td>Rendimiento ejecutivo</td>
+          <td>Conjunto de funciones prefrontales: planificación, flexibilidad, inhibición</td>
+          <td>BRIEF · WCST · Stroop · conectividad gamma prefrontal</td>
+          <td>Reportar solo percepción del cliente</td>
+        </tr>
+        <tr>
+          <td>Coherencia cardíaca</td>
+          <td>Estado de sincronización entre variabilidad cardiaca y ritmo respiratorio</td>
+          <td>HRV en frecuencia (0.1 Hz) · rMSSD · pNN50</td>
+          <td>Equiparar "coherencia" con "bienestar general"</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+
+  <!-- ─────────────────────────────────────────────────────────
+       SLIDE 6 · QUÉ ES OPERACIONALIZAR
+  ───────────────────────────────────────────────────────────── -->
+  <div class="slide slide-content">
+    <div class="slide-header">
+      <div class="slide-eyebrow">Bloque 2 · Operacionalización</div>
+      <h2 class="slide-title">¿Qué significa operacionalizar?</h2>
+    </div>
+
+    <div class="flow">
+      <div class="flow-step">
+        <div class="flow-num">PASO 01</div>
+        <div class="flow-title">Nombrar el constructo</div>
+        <div class="flow-body">¿Qué quieres estudiar o medir?<br><em>"Estrés crónico"</em></div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">
+        <div class="flow-num">PASO 02</div>
+        <div class="flow-title">Definición conceptual</div>
+        <div class="flow-body">¿Qué entiendes teóricamente por ese concepto?<br><em>"Estado de activación sostenida del eje HPA ante demandas percibidas como excesivas"</em></div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">
+        <div class="flow-num">PASO 03</div>
+        <div class="flow-title">Definición operacional</div>
+        <div class="flow-body">¿Cómo lo vas a medir concretamente?<br><em>"Puntuación en PSS-14 + cortisol salival matutino + amplitud de onda beta en Fz"</em></div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">
+        <div class="flow-num">PASO 04</div>
+        <div class="flow-title">Instrumento + protocolo</div>
+        <div class="flow-body">¿Con qué lo mides, cuándo y cómo?<br><em>"PSS-14 sesión 1 y 20 · EEG resting state Fz 3 min · muestra salival 8 am"</em></div>
+      </div>
+    </div>
+
+    <div class="highlight">
+      <div class="highlight-label">Definición clave</div>
+      <div class="highlight-text"><strong>Operacionalizar</strong> es el proceso de especificar <strong>qué procedimiento, instrumento o indicador</strong> se usará para medir un constructo abstracto, de manera que dos investigadoras distintas obtengan resultados comparables.</div>
+    </div>
+  </div>
+
+
+  <!-- ─────────────────────────────────────────────────────────
+       SLIDE 7 · DEFINICIÓN CONCEPTUAL VS OPERACIONAL
+  ───────────────────────────────────────────────────────────── -->
+  <div class="slide slide-content">
+    <div class="slide-header">
+      <div class="slide-eyebrow">Bloque 2 · Las dos definiciones</div>
+      <h2 class="slide-title">Definición conceptual <em>vs.</em> operacional: ejemplos NF</h2>
+    </div>
+
+    <div class="modern-list">
+      <div class="modern-list-item">
+        <div class="mli-icon" style="background: rgba(79,195,247,0.12);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.46 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.46 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2Z"/></svg></div>
+        <div class="mli-content">
+          <div class="mli-title">Constructo: Atención sostenida</div>
+          <div class="mli-body">
+            <strong style="color: var(--accent);">Conceptual:</strong> Capacidad neurocognitiva de mantener el procesamiento activo de información relevante durante períodos prolongados (>5 min), dependiente de redes frontoparietal.<br>
+            <strong style="color: var(--accent3);">Operacional:</strong> Puntaje percentil en subescala de Atención Sostenida del <em>d2-R</em> (≥25 minutos después de la sesión de NF) + ratio theta/beta en Cz durante tarea de Flanker (2 min baseline EO).
+          </div>
+        </div>
+      </div>
+      <div class="modern-list-item">
+        <div class="mli-icon" style="background: rgba(124,77,255,0.12);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+        <div class="mli-content">
+          <div class="mli-title">Constructo: Coherencia cardíaca</div>
+          <div class="mli-body">
+            <strong style="color: var(--accent);">Conceptual:</strong> Estado de sincronización rítmica entre el corazón, el cerebro y el sistema nervioso autónomo, asociado a regulación emocional y rendimiento cognitivo.<br>
+            <strong style="color: var(--accent3);">Operacional:</strong> Potencia espectral en banda LF (0.04–0.15 Hz) del HRV registrado con Polar H10 durante 5 min en reposo sentado, previo y posterior a sesión de BFB-HRV.
+          </div>
+        </div>
+      </div>
+      <div class="modern-list-item">
+        <div class="mli-icon" style="background: rgba(0,229,160,0.12);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div>
+        <div class="mli-content">
+          <div class="mli-title">Constructo: Burnout ejecutivo</div>
+          <div class="mli-body">
+            <strong style="color: var(--accent);">Conceptual:</strong> Síndrome de agotamiento crónico, despersonalización y reducción de eficacia profesional derivado de exposición sostenida a estresores laborales.<br>
+            <strong style="color: var(--accent3);">Operacional:</strong> Puntaje ≥27 en subescala de Agotamiento Emocional del MBI-GS + puntuación en PSS-14 ≥ percentil 75 para la muestra normativa mexicana.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ─────────────────────────────────────────────────────────
+       SLIDE 8 · INDICADORES Y MÉTRICAS
+  ───────────────────────────────────────────────────────────── -->
+  <div class="slide slide-content">
+    <div class="slide-header">
+      <div class="slide-eyebrow">Bloque 2 · Métricas</div>
+      <h2 class="slide-title">Indicadores y métricas en neurofeedback</h2>
+    </div>
+
+    <div class="cards-3">
+      <div class="card" style="--card-accent: var(--accent);">
+        <div class="card-title">Biomarcadores EEG</div>
+        <div class="card-body">
+          Amplitud de banda (µV)<br>Ratio de bandas (theta/beta, alfa/beta)<br>Coherencia inter-hemisférica<br>Latencias de PECs<br><br>
+          <strong>Escala:</strong> razón o intervalo
+        </div>
+      </div>
+      <div class="card" style="--card-accent: var(--accent2);">
+        <div class="card-title">Biomarcadores autonómicos</div>
+        <div class="card-body">
+          SDNN, rMSSD, pNN50 (ms)<br>LF/HF ratio (HRV)<br>EDA (µS): SCL y SCR<br>Temperatura periférica<br><br>
+          <strong>Escala:</strong> razón
+        </div>
+      </div>
+      <div class="card" style="--card-accent: var(--accent3);">
+        <div class="card-title">Instrumentos psicológicos</div>
+        <div class="card-body">
+          Escalas Likert validadas (MBI, PSS, BRIEF)<br>Tests neuropsicológicos (d2-R, Stroop, TMT)<br>Autorreportes estandarizados<br><br>
+          <strong>Escala:</strong> ordinal o intervalo
+        </div>
+      </div>
+    </div>
+
+    <div class="highlight">
+      <div class="highlight-label">Principio de complementariedad</div>
+      <div class="highlight-text">La triangulación de indicadores —<strong>fisiológico + conductual + autoreporte</strong>— aumenta la validez de constructo. Ningún indicador solo captura la totalidad del constructo.</div>
+    </div>
+  </div>
+
+
+  <!-- ─────────────────────────────────────────────────────────
+       SLIDE 9 · SECTION BREAK — NIVELES
+  ───────────────────────────────────────────────────────────── -->
+  <div class="slide slide-section">
+    <div class="grid-lines"></div>
+    <div class="section-num">03</div>
+    <div class="section-tag">Bloque 3 · Niveles de análisis</div>
+    <h2 class="section-title">¿Qué estás observando:<br>un individuo, un equipo<br>o una organización?</h2>
+    <p class="section-body">El nivel de análisis determina qué variables son relevantes, qué diseño usar y qué conclusiones puedes hacer. Confundirlos es uno de los errores metodológicos más costosos.</p>
+    <div style="display: flex; gap: 12px; margin-top: 12px;">
+      <span class="badge badge-accent">Individual</span>
+      <span class="badge badge-green">Grupal</span>
+      <span class="badge badge-warm">Organizacional</span>
+    </div>
+  </div>
+
+
+  <!-- ─────────────────────────────────────────────────────────
+       SLIDE 10 · LOS TRES NIVELES
+  ───────────────────────────────────────────────────────────── -->
+  <div class="slide slide-content">
+    <div class="slide-header">
+      <div class="slide-eyebrow">Bloque 3 · Niveles de análisis</div>
+      <h2 class="slide-title">Los tres niveles y qué preguntan</h2>
+    </div>
+
+    <div class="cards-3">
+      <div class="card" style="--card-accent: var(--accent);">
+        
+        <div class="card-title">Nivel Individual</div>
+        <div class="card-body">
+          <strong>Pregunta:</strong> ¿Este ejecutivo mejoró su regulación del estrés?<br><br>
+          <strong>Unidad:</strong> una persona<br><br>
+          <strong>Variables NF:</strong> HRV individual, ratio theta/beta, puntaje MBI personal, número de sesiones, respuesta al protocolo específico<br><br>
+          <strong>Error común:</strong> generalizar los resultados de un caso a todo el grupo
+        </div>
+      </div>
+      <div class="card" style="--card-accent: var(--accent3);">
+        
+        <div class="card-title">Nivel Grupal</div>
+        <div class="card-body">
+          <strong>Pregunta:</strong> ¿El equipo de ventas redujo su nivel de cortisol después del programa?<br><br>
+          <strong>Unidad:</strong> grupo o equipo<br><br>
+          <strong>Variables NF:</strong> promedio de HRV del equipo, varianza entre miembros, coherencia del grupo, dinámica de interacción<br><br>
+          <strong>Error común:</strong> ignorar que la varianza intra-grupo puede ser mayor que entre grupos
+        </div>
+      </div>
+      <div class="card" style="--card-accent: var(--warm);">
+        
+        <div class="card-title">Nivel Organizacional</div>
+        <div class="card-body">
+          <strong>Pregunta:</strong> ¿La empresa con programa de NF tiene menor rotación y mayor productividad?<br><br>
+          <strong>Unidad:</strong> la organización<br><br>
+          <strong>Variables NF:</strong> % ausentismo, rotación, clima laboral, indicadores de desempeño colectivo<br><br>
+          <strong>Error común:</strong> atribuir cambios organizacionales solo al programa de NF sin controlar otras variables
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ─────────────────────────────────────────────────────────
+       SLIDE 11 · VARIABLES ORGANIZACIONALES
+  ───────────────────────────────────────────────────────────── -->
+  <div class="slide slide-content">
+    <div class="slide-header">
+      <div class="slide-eyebrow">Bloque 3 · Variables contextuales</div>
+      <h2 class="slide-title">Variables organizacionales que afectan tus resultados de NF</h2>
+    </div>
+
+    <div class="split">
+      <div class="split-left">
+        <div class="modern-list">
+          <div class="modern-list-item">
+            <div class="mli-icon" style="background: rgba(255,107,107,0.12);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>
+            <div class="mli-content">
+              <div class="mli-title">Burnout y carga de trabajo</div>
+              <div class="mli-body">Un ejecutivo con carga laboral extrema no responderá igual al protocolo de regulación que uno con carga moderada. La carga es una <strong>variable confusora</strong> si no la mides.</div>
+            </div>
+          </div>
+          <div class="modern-list-item">
+            <div class="mli-icon" style="background: rgba(255,183,77,0.12);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 7l-5 5-5-5"/><path d="M3 12h18"/><path d="M7 17l5-5 5 5"/></svg></div>
+            <div class="mli-content">
+              <div class="mli-title">Calidad de sueño</div>
+              <div class="mli-body">El sueño modula directamente la amplitud de onda alfa y el ratio theta/beta. Sin controlarlo, no sabes si cambió tu intervención o durmió mejor esa semana.</div>
+            </div>
+          </div>
+          <div class="modern-list-item">
+            <div class="mli-icon" style="background: rgba(124,77,255,0.12);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg></div>
+            <div class="mli-content">
+              <div class="mli-title">Estilo de liderazgo</div>
+              <div class="mli-body">El liderazgo del jefe directo actúa como moderador: un ambiente psicológicamente seguro potencia los efectos del entrenamiento.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="split-right">
+        <div class="modern-list">
+          <div class="modern-list-item">
+            <div class="mli-icon" style="background: rgba(79,195,247,0.12);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg></div>
+            <div class="mli-content">
+              <div class="mli-title">Clima organizacional</div>
+              <div class="mli-body">Entornos con alta conflictividad interpersonal elevan el cortisol basal. Si no mides el clima, podrías concluir que tu protocolo "no funciona" cuando el problema es el contexto.</div>
+            </div>
+          </div>
+          <div class="modern-list-item">
+            <div class="mli-icon" style="background: rgba(0,229,160,0.12);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg></div>
+            <div class="mli-content">
+              <div class="mli-title">Turnos y cronobiología</div>
+              <div class="mli-body">Trabajadores nocturnos tienen ritmos circadianos alterados que impactan directamente en el EEG y la HRV. Los turnos deben registrarse como variable de control.</div>
+            </div>
+          </div>
+          <div class="modern-list-item">
+            <div class="mli-icon" style="background: rgba(255,183,77,0.12);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg></div>
+            <div class="mli-content">
+              <div class="mli-title">Rotación y estabilidad laboral</div>
+              <div class="mli-body">Alta rotación = incertidumbre crónica = activación del eje HPA. Una variable organizacional que actúa como estresor sistemático de fondo.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ─────────────────────────────────────────────────────────
+       SLIDE 12 · FALACIA ECOLÓGICA
+  ───────────────────────────────────────────────────────────── -->
+  <div class="slide slide-quote">
+    <div class="quote-mark">!</div>
+    <p class="quote-text">Falacia ecológica: concluir sobre individuos a partir de datos grupales. Falacia atomista: ignorar el contexto organizacional cuando interpretas un caso clínico.</p>
+    <div class="quote-source">Errores de nivel de análisis · Robinson, 1950 / Alker, 1969</div>
+    <div class="tags" style="justify-content:center; margin-top: 16px;">
+      <span class="tag tag-red">Error frecuente en NF aplicado</span>
+      <span class="tag tag-blue">El nivel determina la inferencia válida</span>
+    </div>
+
+    <div class="highlight" style="max-width:700px; margin-top: 8px;">
+      <div class="highlight-label">Ejemplo NF</div>
+      <div class="highlight-text">No puedes concluir que "el neurofeedback mejora la atención en ejecutivos" basándote solo en los resultados de 3 casos sin grupo control. Estás describiendo, no demostrando.</div>
+    </div>
+  </div>
+
+
+  <!-- ─────────────────────────────────────────────────────────
+       SLIDE 13 · MAPA CONCEPTUAL / SÍNTESIS VISUAL
+  ───────────────────────────────────────────────────────────── -->
+  <div class="slide slide-content">
+    <div class="slide-header">
+      <div class="slide-eyebrow">Síntesis</div>
+      <h2 class="slide-title">Del constructo al dato: mapa del proceso</h2>
+    </div>
+
+    <div style="width: 100%; display: flex; flex-direction: column; gap: 12px;">
+      <!-- Row 1 -->
+      <div style="display: grid; grid-template-columns: 1fr 40px 1fr 40px 1fr; gap: 0; align-items: center;">
+        <div class="card" style="--card-accent: var(--accent2); padding: 20px;">
+          <div class="card-title" style="font-size: 13px; margin-bottom: 6px;">CONSTRUCTO</div>
+          <div class="card-body" style="font-size: 12px;">Concepto abstracto teórico<br><em>Ej: "Estrés ejecutivo"</em></div>
+        </div>
+        <div style="text-align: center; color: var(--accent); font-size: 18px;">→</div>
+        <div class="card" style="--card-accent: var(--accent); padding: 20px;">
+          <div class="card-title" style="font-size: 13px; margin-bottom: 6px;">DEF. CONCEPTUAL</div>
+          <div class="card-body" style="font-size: 12px;">Marco teórico que delimita el fenómeno<br><em>Ej: "Activación sostenida del eje HPA..."</em></div>
+        </div>
+        <div style="text-align: center; color: var(--accent); font-size: 18px;">→</div>
+        <div class="card" style="--card-accent: var(--accent3); padding: 20px;">
+          <div class="card-title" style="font-size: 13px; margin-bottom: 6px;">DEF. OPERACIONAL</div>
+          <div class="card-body" style="font-size: 12px;">Procedimiento concreto de medición<br><em>Ej: "PSS-14 + beta Fz + cortisol"</em></div>
+        </div>
+      </div>
+
+      <div style="display: flex; justify-content: center; color: var(--muted); font-size: 18px;">↓</div>
+
+      <!-- Row 2 -->
+      <div style="display: grid; grid-template-columns: 1fr 40px 1fr 40px 1fr; gap: 0; align-items: center;">
+        <div class="card" style="--card-accent: var(--warm); padding: 20px;">
+          <div class="card-title" style="font-size: 13px; margin-bottom: 6px;">INSTRUMENTO</div>
+          <div class="card-body" style="font-size: 12px;">Herramienta validada de medición<br><em>Ej: PSS-14 · EEG BrainMaster · Polar H10</em></div>
+        </div>
+        <div style="text-align: center; color: var(--accent); font-size: 18px;">→</div>
+        <div class="card" style="--card-accent: var(--accent); padding: 20px;">
+          <div class="card-title" style="font-size: 13px; margin-bottom: 6px;">DATO / MÉTRICA</div>
+          <div class="card-body" style="font-size: 12px;">Valor numérico o categórico registrado<br><em>Ej: PSS = 34 · beta Fz = 8.2 µV · SDNN = 41 ms</em></div>
+        </div>
+        <div style="text-align: center; color: var(--accent); font-size: 18px;">→</div>
+        <div class="card" style="--card-accent: var(--accent2); padding: 20px;">
+          <div class="card-title" style="font-size: 13px; margin-bottom: 6px;">ANÁLISIS/EVIDENCIA</div>
+          <div class="card-body" style="font-size: 12px;">Interpretación estadística y clínica<br><em>Ej: "Reducción significativa post-intervención (p=.03)"</em></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ─────────────────────────────────────────────────────────
+       SLIDE 14 · ACTIVIDAD PRÁCTICA
+  ───────────────────────────────────────────────────────────── -->
+  <div class="slide slide-content">
+    <div class="slide-header">
+      <div class="slide-eyebrow">Bloque 4 · Actividad práctica</div>
+      <h2 class="slide-title">Operacionalizamos juntas</h2>
+    </div>
+
+    <div class="highlight" style="margin-bottom: 8px;">
+      <div class="highlight-label">Instrucción (15 minutos)</div>
+      <div class="highlight-text">Elige <strong>un constructo</strong> de tu práctica actual. Completa las 4 columnas. Al terminar compartimos y analizamos qué falta para que el dato sea publicable.</div>
+    </div>
+
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Constructo</th>
+          <th>Definición conceptual</th>
+          <th>Definición operacional</th>
+          <th>Instrumento + momento</th>
+          <th>¿Qué falta?</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="color: var(--muted); font-style: italic; font-weight: 400;">Ej: Fatiga mental</td>
+          <td style="color: var(--muted); font-size: 12px; font-style: italic; font-weight: 300;">Reducción progresiva de recursos atencionales tras esfuerzo cognitivo sostenido</td>
+          <td style="color: var(--muted); font-size: 12px; font-style: italic; font-weight: 300;">Incremento &gt;15% en ratio theta/alfa frontal vs. baseline</td>
+          <td style="color: var(--muted); font-size: 12px; font-style: italic; font-weight: 300;">EEG resting state 3 min · pre y post sesión 60 min</td>
+          <td style="color: var(--muted); font-size: 12px; font-style: italic; font-weight: 300;">Tarea cognitiva estandarizada · autoreporte NASA-TLX</td>
+        </tr>
+        <tr>
+          <td style="height: 52px;"></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td style="height: 52px;"></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="tags">
+      <span class="tag tag-blue">¿Es observable?</span>
+      <span class="tag tag-purple">¿Qué instrumento lo mide?</span>
+      <span class="tag tag-green">¿En qué condición y cuándo?</span>
+      <span class="tag tag-warm">¿Con qué escala?</span>
+      <span class="tag tag-red">¿Es replicable por otra persona?</span>
+    </div>
+  </div>
+
+
+  <!-- ─────────────────────────────────────────────────────────
+       SLIDE 15 · CIERRE
+  ───────────────────────────────────────────────────────────── -->
+  <div class="slide slide-close">
+    <div class="grid-lines"></div>
+    <svg class="wave-deco" viewBox="0 0 1440 200" xmlns="http://www.w3.org/2000/svg">
+      <polyline points="0,100 80,100 120,20 160,180 200,100 280,100 320,60 360,140 400,100 480,100 520,30 560,170 600,100 680,100 720,50 760,150 800,100 880,100 920,10 960,190 1000,100 1080,100 1120,70 1160,130 1200,100 1280,100 1360,55 1400,145 1440,100"
+        fill="none" stroke="#00e5a0" stroke-width="3"/>
+    </svg>
+
+    <div class="cover-eyebrow">Para la próxima sesión</div>
+    <h2 class="cover-title" style="font-size: clamp(28px, 4vw, 48px);">Lo que llevas hoy</h2>
+
+    <div class="cards-3" style="max-width: 900px;">
+      <div class="card" style="--card-accent: var(--accent); text-align: left;">
+        
+        <div class="card-title">Sabes qué es un constructo</div>
+        <div class="card-body">Y por qué no es lo mismo que una variable. Puedes nombrarlos en tu servicio.</div>
+      </div>
+      <div class="card" style="--card-accent: var(--accent2); text-align: left;">
+        
+        <div class="card-title">Sabes operacionalizar</div>
+        <div class="card-body">Tienes las 4 preguntas para convertir un concepto en un dato medible y replicable.</div>
+      </div>
+      <div class="card" style="--card-accent: var(--accent3); text-align: left;">
+        
+        <div class="card-title">Identificas los niveles de análisis</div>
+        <div class="card-body">Sabes si estás hablando de un sujeto, un equipo o una organización, y qué variables importan en cada nivel.</div>
+      </div>
+    </div>
+
+    <div class="highlight" style="max-width: 800px;">
+      <div class="highlight-label">Tarea para Seminario 5</div>
+      <div class="highlight-text">Elige <strong>dos constructos</strong> de tu protocolo actual. Escribe su definición conceptual y operacional. Identifica el instrumento con el que los mides. Trae el ejercicio completo — lo revisaremos en el bloque de instrumentos y validez.</div>
+    </div>
+
+    <div class="cover-meta" style="margin-top: 8px;">
+      <div class="cover-meta-item">
+        <div class="label">Siguiente sesión</div>
+        <div class="val">Seminario 5 · Instrumentos, escalas y calidad de medición</div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /deck -->
+
+
+<!-- NAV -->
+<div class="nav">
+  <button id="prevBtn" onclick="changeSlide(-1)">←</button>
+  <div class="dots" id="dots"></div>
+  <div class="slide-counter" id="counter">1 / 15</div>
+  <button id="nextBtn" onclick="changeSlide(1)">→</button>
+</div>
+
+<script>
+  // STATE
+  let current = 0;
+  const slides = document.querySelectorAll('.slide');
+  const N = slides.length;
+
+  // BUILD DOTS
+  const dotsEl = document.getElementById('dots');
+  for (let i = 0; i < N; i++) {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === 0 ? ' active' : '');
+    d.onclick = () => goTo(i);
+    dotsEl.appendChild(d);
+  }
+
+  function goTo(n) {
+    slides[current].classList.remove('active');
+    dotsEl.children[current].classList.remove('active');
+    current = Math.max(0, Math.min(N - 1, n));
+    slides[current].classList.add('active');
+    dotsEl.children[current].classList.add('active');
+    document.getElementById('counter').textContent = `${current + 1} / ${N}`;
+    document.getElementById('progressFill').style.width = `${((current + 1) / N) * 100}%`;
+  }
+
+  function changeSlide(dir) { goTo(current + dir); }
+
+  // KEYBOARD
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') changeSlide(1);
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') changeSlide(-1);
+    if (e.key === 'f' || e.key === 'F') {
+      if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+      else document.exitFullscreen();
+    }
+  });
+
+  // TIMER
+  let startTime = Date.now();
+  setInterval(() => {
+    const elapsed = Math.floor((Date.now() - startTime) / 1000);
+    const m = String(Math.floor(elapsed / 60)).padStart(2, '0');
+    const s = String(elapsed % 60).padStart(2, '0');
+    document.getElementById('timerDisplay').textContent = `${m}:${s}`;
+    // color warning
+    if (elapsed > 3000) document.getElementById('timerDisplay').style.color = 'var(--danger)';
+    else if (elapsed > 2700) document.getElementById('timerDisplay').style.color = 'var(--warm)';
+  }, 1000);
+
+  // INIT PROGRESS
+  document.getElementById('progressFill').style.width = `${(1 / N) * 100}%`;
+</script>
+</body>
+</html>
